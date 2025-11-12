@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Calendar, Users } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import FadeInView from '../components/animations/FadeInView';
 import { rooms } from '../data/rooms';
 import type { BookingFormData } from '../types';
-import '../styles/datepicker-custom.css';
 
 const Book: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -23,9 +20,6 @@ const Book: React.FC = () => {
     guests: 1,
     specialRequests: ''
   });
-
-  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
-  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
 
   const selectedRoom = rooms.find(room => room.id === formData.roomId);
 
@@ -142,24 +136,17 @@ const Book: React.FC = () => {
                         <Calendar className="inline-block mr-2" size={16} />
                         Check-in Date *
                       </label>
-                      <DatePicker
-                        selected={checkInDate}
-                        onChange={(date: Date | null) => {
-                          setCheckInDate(date);
-                          setFormData({
-                            ...formData,
-                            checkIn: date ? date.toISOString().split('T')[0] : ''
-                          });
-                        }}
-                        selectsStart
-                        startDate={checkInDate}
-                        endDate={checkOutDate}
-                        minDate={new Date()}
-                        dateFormat="MMMM d, yyyy"
-                        placeholderText="Select check-in date"
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name="checkIn"
+                          value={formData.checkIn}
+                          onChange={handleChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          required
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -167,24 +154,17 @@ const Book: React.FC = () => {
                         <Calendar className="inline-block mr-2" size={16} />
                         Check-out Date *
                       </label>
-                      <DatePicker
-                        selected={checkOutDate}
-                        onChange={(date: Date | null) => {
-                          setCheckOutDate(date);
-                          setFormData({
-                            ...formData,
-                            checkOut: date ? date.toISOString().split('T')[0] : ''
-                          });
-                        }}
-                        selectsEnd
-                        startDate={checkInDate}
-                        endDate={checkOutDate}
-                        minDate={checkInDate || new Date()}
-                        dateFormat="MMMM d, yyyy"
-                        placeholderText="Select check-out date"
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name="checkOut"
+                          value={formData.checkOut}
+                          onChange={handleChange}
+                          min={formData.checkIn || new Date().toISOString().split('T')[0]}
+                          required
+                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
+                        />
+                      </div>
                     </div>
                   </div>
 
