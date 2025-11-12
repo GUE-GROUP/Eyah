@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Calendar, Users, CreditCard, CheckCircle } from 'lucide-react';
+import { Calendar, Users } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import FadeInView from '../components/animations/FadeInView';
 import { rooms } from '../data/rooms';
 import type { BookingFormData } from '../types';
+import '../styles/datepicker-custom.css';
 
 const Book: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -20,6 +23,9 @@ const Book: React.FC = () => {
     guests: 1,
     specialRequests: ''
   });
+
+  const [checkInDate, setCheckInDate] = useState<Date | null>(null);
+  const [checkOutDate, setCheckOutDate] = useState<Date | null>(null);
 
   const selectedRoom = rooms.find(room => room.id === formData.roomId);
 
@@ -102,7 +108,7 @@ const Book: React.FC = () => {
                       value={formData.roomId}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
                     >
                       <option value="">Choose a room</option>
                       {rooms.map(room => (
@@ -133,49 +139,77 @@ const Book: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <Calendar className="inline-block mr-2" size={16} />
                         Check-in Date *
                       </label>
-                      <input
-                        type="date"
-                        name="checkIn"
-                        value={formData.checkIn}
-                        onChange={handleChange}
-                        min={new Date().toISOString().split('T')[0]}
+                      <DatePicker
+                        selected={checkInDate}
+                        onChange={(date: Date | null) => {
+                          setCheckInDate(date);
+                          setFormData({
+                            ...formData,
+                            checkIn: date ? date.toISOString().split('T')[0] : ''
+                          });
+                        }}
+                        selectsStart
+                        startDate={checkInDate}
+                        endDate={checkOutDate}
+                        minDate={new Date()}
+                        dateFormat="MMMM d, yyyy"
+                        placeholderText="Select check-in date"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <Calendar className="inline-block mr-2" size={16} />
                         Check-out Date *
                       </label>
-                      <input
-                        type="date"
-                        name="checkOut"
-                        value={formData.checkOut}
-                        onChange={handleChange}
-                        min={formData.checkIn || new Date().toISOString().split('T')[0]}
+                      <DatePicker
+                        selected={checkOutDate}
+                        onChange={(date: Date | null) => {
+                          setCheckOutDate(date);
+                          setFormData({
+                            ...formData,
+                            checkOut: date ? date.toISOString().split('T')[0] : ''
+                          });
+                        }}
+                        selectsEnd
+                        startDate={checkInDate}
+                        endDate={checkOutDate}
+                        minDate={checkInDate || new Date()}
+                        dateFormat="MMMM d, yyyy"
+                        placeholderText="Select check-out date"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50 cursor-pointer"
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Users className="inline-block mr-2" size={16} />
                       Number of Guests *
                     </label>
-                    <input
-                      type="number"
-                      name="guests"
-                      value={formData.guests}
-                      onChange={handleChange}
-                      min="1"
-                      max={selectedRoom?.capacity || 10}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        name="guests"
+                        value={formData.guests}
+                        onChange={handleChange}
+                        min="1"
+                        max={selectedRoom?.capacity || 10}
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50"
+                      />
+                      {selectedRoom && (
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                          Max: {selectedRoom.capacity}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </FadeInView>
