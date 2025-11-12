@@ -1,0 +1,58 @@
+import type { Room } from '../types';
+
+export const rooms: Room[] = [
+  {
+    id: '1',
+    name: 'Comfy Deluxe',
+    description: 'Experience comfort and elegance in our Comfy Deluxe rooms, perfect for a relaxing stay.',
+    price: 15000,
+    image: '/images/img (7).jpg',
+    features: ['King Size Bed', 'Free WiFi', 'Air Conditioning', 'Flat Screen TV', 'Mini Bar'],
+    capacity: 2,
+  },
+  {
+    id: '2',
+    name: 'Super Deluxe',
+    description: 'Indulge in luxury with our Super Deluxe rooms featuring premium amenities and stunning views.',
+    price: 20000,
+    image: '/images/img (7).jpg',
+    features: ['King Size Bed', 'Free WiFi', 'Air Conditioning', 'Flat Screen TV', 'Mini Bar', 'Balcony', 'Work Desk'],
+    capacity: 2,
+  },
+  {
+    id: '3',
+    name: 'Luxury Splash',
+    description: 'Dive into luxury with our Luxury Splash rooms, complete with spa-like bathrooms and modern design.',
+    price: 25000,
+    image: '/images/img (8).jpg',
+    features: ['King Size Bed', 'Free WiFi', 'Air Conditioning', 'Smart TV', 'Mini Bar', 'Jacuzzi', 'Premium Toiletries'],
+    capacity: 2,
+  },
+  {
+    id: '4',
+    name: 'Avalanche Suite',
+    description: 'Experience the pinnacle of comfort in our spacious Avalanche Suite with separate living area.',
+    price: 35000,
+    image: '/images/img (8).jpg',
+    features: ['King Size Bed', 'Free WiFi', 'Air Conditioning', 'Smart TV', 'Mini Bar', 'Living Room', 'Dining Area', 'Kitchenette'],
+    capacity: 4,
+  },
+  {
+    id: '5',
+    name: 'Business Executive',
+    description: 'Perfect for business travelers, featuring a dedicated workspace and premium business amenities.',
+    price: 30000,
+    image: '/images/img (9).jpg',
+    features: ['King Size Bed', 'Free WiFi', 'Air Conditioning', 'Smart TV', 'Executive Desk', 'Meeting Space', 'Coffee Machine'],
+    capacity: 2,
+  },
+  {
+    id: '6',
+    name: 'Presidential Suite',
+    description: 'The ultimate luxury experience with panoramic views, private dining, and exclusive services.',
+    price: 75000,
+    image: '/images/img (9).jpg',
+    features: ['King Size Bed', 'Free WiFi', 'Air Conditioning', 'Smart TV', 'Living Room', 'Dining Room', 'Kitchen', 'Butler Service', 'Private Balcony'],
+    capacity: 4,
+  },
+];
