@@ -1,0 +1,38 @@
+{
+  "name": "eyahs-hotel-backend",
+  "version": "1.0.0",
+  "description": "Supabase backend for Eyah's Hotel & Suites",
+  "type": "module",
+  "scripts": {
+    "deploy": "node deploy.js",
+    "deploy:functions": "node deploy.js",
+    "start": "supabase start",
+    "stop": "supabase stop",
+    "status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:dump": "supabase db dump -f backup.sql",
+    "functions:serve": "supabase functions serve",
+    "functions:deploy": "supabase functions deploy",
+    "functions:deploy:check-availability": "supabase functions deploy check-availability",
+    "functions:deploy:create-booking": "supabase functions deploy create-booking",
+    "functions:deploy:send-confirmation": "supabase functions deploy send-confirmation",
+    "functions:logs": "supabase functions logs",
+    "link": "supabase link",
+    "login": "supabase login",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "supabase",
+    "hotel",
+    "booking",
+    "backend"
+  ],
+  "author": "Eyah's Hotel & Suites",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "supabase": "^1.142.2"
+  }
+}

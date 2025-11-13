@@ -1,11 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Wifi, ArrowRight } from 'lucide-react';
+import { Users, Wifi, ArrowRight, Eye, Loader2 } from 'lucide-react';
 import FadeInView from '../components/animations/FadeInView';
-import { rooms } from '../data/rooms';
+import { useToast } from '../components/ToastContainer';
+import { getRooms } from '../lib/supabase';
+import type { Room } from '../types';
 
 const Rooms: React.FC = () => {
+  const toast = useToast();
   const [filter, setFilter] = useState<'all' | 'deluxe' | 'suite'>('all');
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadRooms();
+  }, []);
+
+  const loadRooms = async () => {
+    console.group('🏠 Rooms Page - Loading Rooms');
+    console.log('Component:', 'Rooms.tsx');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Current filter:', filter);
+    
+    try {
+      console.log('📞 Calling getRooms()...');
+      const data = await getRooms();
+      
+      console.log('✅ Rooms loaded successfully in Rooms page!');
+      console.log('  Count:', data?.length || 0);
+      if (data && data.length > 0) {
+        console.log('  Room names:', data.map(r => r.name));
+      }
+      setRooms(data);
+      console.groupEnd();
+    } catch (error: any) {
+      console.error('❌ Error loading rooms in Rooms page:');
+      console.error('  Error type:', error.constructor.name);
+      console.error('  Error message:', error.message);
+      console.error('  Stack trace:', error.stack);
+      console.error('  Full error:', error);
+      
+      if (error.message && error.message.includes('Database not set up')) {
+        console.warn('⚠️  Database not set up. Falling back to demo data.');
+        toast.warning('Using demo data. Deploy database for real data.');
+        // Fallback to demo data
+        import('../data/rooms').then(module => {
+          console.log('📂 Loaded demo data:', module.rooms.length, 'rooms');
+          console.log('  Demo rooms:', module.rooms.map(r => r.name));
+          setRooms(module.rooms);
+        });
+      } else {
+        console.warn('⚠️  Failed to load rooms. Falling back to demo data.');
+        console.warn('  Possible causes:');
+        console.warn('  1. Network error');
+        console.warn('  2. Supabase credentials incorrect');
+        console.warn('  3. Database tables not created');
+        console.warn('  4. CORS issue');
+        toast.error('Failed to load rooms. Using demo data.');
+        // Fallback to demo data
+        import('../data/rooms').then(module => {
+          console.log('📂 Loaded demo data:', module.rooms.length, 'rooms');
+          setRooms(module.rooms);
+        });
+      }
+      console.groupEnd();
+    } finally {
+      setLoading(false);
+      console.log('⏱️  Loading complete. Loading state set to false.');
+    }
+  };
 
   const filteredRooms = rooms.filter(room => {
     if (filter === 'all') return true;
@@ -75,6 +138,11 @@ const Rooms: React.FC = () => {
       {/* Rooms Grid */}
       <section className="py-20 bg-cream">
         <div className="container-custom">
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredRooms.map((room, index) => (
               <FadeInView key={room.id} delay={index * 0.1}>
@@ -123,17 +191,26 @@ const Rooms: React.FC = () => {
                       </div>
                     </div>
                     
-                    <Link 
-                      to={`/book?room=${room.id}`}
-                      className="w-full btn-primary text-center inline-flex items-center justify-center gap-2"
-                    >
-                      Book Now <ArrowRight size={18} />
-                    </Link>
+                    <div className="flex gap-2">
+                      <Link 
+                        to={`/room/${room.id}`}
+                        className="flex-1 btn-outline text-center inline-flex items-center justify-center gap-2"
+                      >
+                        <Eye size={18} /> Details
+                      </Link>
+                      <Link 
+                        to={`/book?room=${room.id}`}
+                        className="flex-1 btn-primary text-center inline-flex items-center justify-center gap-2"
+                      >
+                        Book <ArrowRight size={18} />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </FadeInView>
             ))}
           </div>
+          )}
         </div>
       </section>
     </div>

@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Gallery from './pages/Gallery';
 import About from './pages/About';
 import Rooms from './pages/Rooms';
+import RoomDetails from './pages/RoomDetails';
 import Cart from './pages/Cart';
 import Contact from './pages/Contact';
 import Book from './pages/Book';
@@ -15,6 +16,7 @@ import AdminBookings from './pages/admin/AdminBookings';
 import AdminRooms from './pages/admin/AdminRooms';
 import AdminMessages from './pages/admin/AdminMessages';
 import { CartProvider } from './context/CartContext';
+import { ToastProvider } from './components/ToastContainer';
 
 // Scroll to top component
 const ScrollToTop: React.FC = () => {
@@ -53,6 +55,7 @@ function App() {
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/about" element={<About />} />
               <Route path="/rooms" element={<Rooms />} />
+              <Route path="/room/:roomId" element={<RoomDetails />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/book" element={<Book />} />
@@ -68,7 +71,9 @@ function App() {
 function AppWrapper() {
   return (
     <Router>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </Router>
   );
 }

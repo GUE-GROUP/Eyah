@@ -1,0 +1,43 @@
+# GitHub Actions Workflow to Deploy Supabase Edge Functions
+# Automatically deploys when you push to main branch
+
+name: Deploy to Supabase
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Backend/supabase/functions/**'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          cd Backend
+          supabase functions deploy check-availability --project-ref $SUPABASE_PROJECT_ID
+          supabase functions deploy create-booking --project-ref $SUPABASE_PROJECT_ID
+          supabase functions deploy send-confirmation --project-ref $SUPABASE_PROJECT_ID
+
+      - name: Deployment Success
+        run: echo "✅ Edge Functions deployed successfully!"

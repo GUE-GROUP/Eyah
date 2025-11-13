@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '../../components/ToastContainer';
+import { adminSignIn } from '../../lib/supabase';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -15,22 +18,26 @@ const AdminLogin: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call - will be replaced with Supabase authentication
-    setTimeout(() => {
-      // Mock authentication
-      if (formData.email && formData.password) {
-        localStorage.setItem('adminToken', 'mock-token-123');
-        localStorage.setItem('adminUser', JSON.stringify({
-          email: formData.email,
-          name: 'Admin User',
-          role: 'admin'
-        }));
-        navigate('/admin/dashboard');
-      } else {
-        alert('Invalid credentials');
-      }
+    try {
+      const { user, adminUser } = await adminSignIn(formData.email, formData.password);
+      
+      // Store admin info
+      localStorage.setItem('adminToken', user.id);
+      localStorage.setItem('adminUser', JSON.stringify({
+        id: adminUser.id,
+        email: adminUser.email,
+        name: adminUser.full_name,
+        role: adminUser.role
+      }));
+      
+      toast.success(`Welcome back, ${adminUser.full_name}!`);
+      navigate('/admin/dashboard');
+    } catch (error: any) {
+      toast.error(error.message || 'Invalid credentials. Please try again.');
+      console.error(error);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Loader2 } from 'lucide-react';
 import FadeInView from '../components/animations/FadeInView';
 import SlideInView from '../components/animations/SlideInView';
+import { useToast } from '../components/ToastContainer';
+import { submitContactMessage } from '../lib/supabase';
 
 const Contact: React.FC = () => {
+  const toast = useToast();
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,12 +16,20 @@ const Contact: React.FC = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Form submitted:', formData);
-    alert('Thank you for contacting us! We will get back to you soon.');
-    setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    setSubmitting(true);
+    
+    try {
+      await submitContactMessage(formData);
+      toast.success('Thank you for contacting us! We will get back to you soon.');
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+    } catch (error: any) {
+      toast.error('Failed to send message. Please try again.');
+      console.error(error);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -186,8 +198,13 @@ const Contact: React.FC = () => {
                     />
                   </div>
 
-                  <button type="submit" className="w-full btn-primary">
-                    Send Message
+                  <button 
+                    type="submit" 
+                    disabled={submitting}
+                    className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {submitting ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
               </div>

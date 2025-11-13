@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Calendar, Users } from 'lucide-react';
+import { Calendar, Users, Loader2 } from 'lucide-react';
 import FadeInView from '../components/animations/FadeInView';
-import { rooms } from '../data/rooms';
+import { useToast } from '../components/ToastContainer';
+import { checkRoomAvailability, createBooking, getRooms } from '../lib/supabase';
 import type { BookingFormData } from '../types';
+import type { Room } from '../types';
 
 const Book: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [step, setStep] = useState(1);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<BookingFormData>({
     firstName: '',
     lastName: '',
@@ -26,6 +32,54 @@ const Book: React.FC = () => {
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
 
+  // Load rooms from Supabase
+  useEffect(() => {
+    loadRooms();
+  }, []);
+
+  const loadRooms = async () => {
+    console.group('🎯 Book Page - Loading Rooms');
+    console.log('Component:', 'Book.tsx');
+    console.log('Timestamp:', new Date().toISOString());
+    
+    try {
+      console.log('📞 Calling getRooms()...');
+      const data = await getRooms();
+      
+      console.log('✅ Rooms loaded successfully!');
+      console.log('  Count:', data?.length || 0);
+      setRooms(data);
+      console.groupEnd();
+    } catch (error: any) {
+      console.error('❌ Error loading rooms in Book page:');
+      console.error('  Error type:', error.constructor.name);
+      console.error('  Error message:', error.message);
+      console.error('  Full error:', error);
+      
+      // Check if it's a database setup issue
+      if (error.message && error.message.includes('Database not set up')) {
+        console.warn('⚠️  Database not set up. Falling back to demo data.');
+        toast.error('Database not set up yet. Using demo data.');
+        // Import fallback data
+        import('../data/rooms').then(module => {
+          console.log('📂 Loaded demo data:', module.rooms.length, 'rooms');
+          setRooms(module.rooms);
+        });
+      } else {
+        console.warn('⚠️  Failed to load rooms. Falling back to demo data.');
+        toast.error('Failed to load rooms. Using demo data.');
+        // Import fallback data
+        import('../data/rooms').then(module => {
+          console.log('📂 Loaded demo data:', module.rooms.length, 'rooms');
+          setRooms(module.rooms);
+        });
+      }
+      console.groupEnd();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const selectedRoom = rooms.find(room => room.id === formData.roomId);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -35,15 +89,29 @@ const Book: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < 3) {
       setStep(step + 1);
     } else {
       // Handle final submission
-      console.log('Booking submitted:', formData);
-      alert('Booking successful! We will contact you shortly.');
-      navigate('/');
+      await submitBooking();
+    }
+  };
+
+  const submitBooking = async () => {
+    setSubmitting(true);
+    try {
+      const result = await createBooking(formData);
+      if (result.success) {
+        toast.success('Booking created successfully! Check your email for confirmation.');
+        setTimeout(() => navigate('/'), 2000);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create booking. Please try again.');
+      console.error(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -57,26 +125,34 @@ const Book: React.FC = () => {
 
   const checkAvailability = async () => {
     if (!formData.roomId || !formData.checkIn || !formData.checkOut) {
-      alert('Please select room and dates first');
+      toast.warning('Please select room and dates first');
       return;
     }
 
     setIsCheckingAvailability(true);
     setIsAvailable(null);
 
-    // Simulate API call - will be replaced with Supabase later
-    setTimeout(() => {
-      // Mock availability check - randomly returns true/false for demo
-      const available = Math.random() > 0.2; // 80% chance of availability
-      setIsAvailable(available);
-      setIsCheckingAvailability(false);
+    try {
+      const result = await checkRoomAvailability(
+        formData.roomId,
+        formData.checkIn,
+        formData.checkOut,
+        formData.rooms
+      );
       
-      if (available) {
-        alert('Great news! The room is available for your selected dates.');
+      setIsAvailable(result.available);
+      
+      if (result.available) {
+        toast.success(`Great news! The room is available. Total: ₦${result.totalPrice.toLocaleString()}`);
       } else {
-        alert('Sorry, this room is not available for the selected dates. Please try different dates.');
+        toast.error('Sorry, this room is not available for the selected dates.');
       }
-    }, 1500);
+    } catch (error: any) {
+      toast.error('Failed to check availability. Please try again.');
+      console.error(error);
+    } finally {
+      setIsCheckingAvailability(false);
+    }
   };
 
   return (
@@ -414,9 +490,11 @@ const Book: React.FC = () => {
               )}
               <button
                 type="submit"
-                className="btn-primary ml-auto"
+                disabled={submitting}
+                className="btn-primary ml-auto flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {step === 3 ? 'Confirm Booking' : 'Next Step'}
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {step === 3 ? (submitting ? 'Creating Booking...' : 'Confirm Booking') : 'Next Step'}
               </button>
             </div>
           </div>
