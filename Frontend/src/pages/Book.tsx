@@ -17,9 +17,14 @@ const Book: React.FC = () => {
     roomId: searchParams.get('room') || '',
     checkIn: '',
     checkOut: '',
-    guests: 1,
+    adults: 1,
+    children: 0,
+    rooms: 1,
     specialRequests: ''
   });
+
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
 
   const selectedRoom = rooms.find(room => room.id === formData.roomId);
 
@@ -47,7 +52,31 @@ const Book: React.FC = () => {
     const checkInDate = new Date(formData.checkIn);
     const checkOutDate = new Date(formData.checkOut);
     const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-    return selectedRoom.price * nights;
+    return selectedRoom.price * nights * formData.rooms;
+  };
+
+  const checkAvailability = async () => {
+    if (!formData.roomId || !formData.checkIn || !formData.checkOut) {
+      alert('Please select room and dates first');
+      return;
+    }
+
+    setIsCheckingAvailability(true);
+    setIsAvailable(null);
+
+    // Simulate API call - will be replaced with Supabase later
+    setTimeout(() => {
+      // Mock availability check - randomly returns true/false for demo
+      const available = Math.random() > 0.2; // 80% chance of availability
+      setIsAvailable(available);
+      setIsCheckingAvailability(false);
+      
+      if (available) {
+        alert('Great news! The room is available for your selected dates.');
+      } else {
+        alert('Sorry, this room is not available for the selected dates. Please try different dates.');
+      }
+    }, 1500);
   };
 
   return (
@@ -168,28 +197,84 @@ const Book: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Users className="inline-block mr-2" size={16} />
-                      Number of Guests *
-                    </label>
-                    <div className="relative">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <Users className="inline-block mr-2" size={16} />
+                        Adults *
+                      </label>
                       <input
                         type="number"
-                        name="guests"
-                        value={formData.guests}
+                        name="adults"
+                        value={formData.adults}
                         onChange={handleChange}
                         min="1"
-                        max={selectedRoom?.capacity || 10}
+                        max="10"
                         required
                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50"
                       />
-                      {selectedRoom && (
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                          Max: {selectedRoom.capacity}
-                        </span>
-                      )}
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <Users className="inline-block mr-2" size={16} />
+                        Children
+                      </label>
+                      <input
+                        type="number"
+                        name="children"
+                        value={formData.children}
+                        onChange={handleChange}
+                        min="0"
+                        max="10"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Rooms *
+                      </label>
+                      <input
+                        type="number"
+                        name="rooms"
+                        value={formData.rooms}
+                        onChange={handleChange}
+                        min="1"
+                        max="10"
+                        required
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-all duration-200 bg-white hover:border-accent/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Check Availability Button */}
+                  <div className="mt-6">
+                    <button
+                      type="button"
+                      onClick={checkAvailability}
+                      disabled={isCheckingAvailability || !formData.roomId || !formData.checkIn || !formData.checkOut}
+                      className="w-full bg-primary hover:bg-primary-light text-white font-semibold px-8 py-4 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isCheckingAvailability ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Checking Availability...
+                        </>
+                      ) : (
+                        'Check Availability'
+                      )}
+                    </button>
+                    
+                    {isAvailable !== null && (
+                      <div className={`mt-4 p-4 rounded-lg ${isAvailable ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                        {isAvailable ? (
+                          <p className="font-semibold">✓ Room is available for your selected dates!</p>
+                        ) : (
+                          <p className="font-semibold">✗ Room is not available. Please select different dates.</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </FadeInView>

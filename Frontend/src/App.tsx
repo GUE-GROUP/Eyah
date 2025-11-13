@@ -9,6 +9,11 @@ import Rooms from './pages/Rooms';
 import Cart from './pages/Cart';
 import Contact from './pages/Contact';
 import Book from './pages/Book';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminBookings from './pages/admin/AdminBookings';
+import AdminRooms from './pages/admin/AdminRooms';
+import AdminMessages from './pages/admin/AdminMessages';
 import { CartProvider } from './context/CartContext';
 
 // Scroll to top component
@@ -23,10 +28,23 @@ const ScrollToTop: React.FC = () => {
 };
 
 function App() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-    <Router>
-      <CartProvider>
-        <ScrollToTop />
+    <CartProvider>
+      <ScrollToTop />
+      {isAdminRoute ? (
+        // Admin routes without Header/Footer
+        <Routes>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/bookings" element={<AdminBookings />} />
+          <Route path="/admin/rooms" element={<AdminRooms />} />
+          <Route path="/admin/messages" element={<AdminMessages />} />
+        </Routes>
+      ) : (
+        // Public routes with Header/Footer
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="flex-grow">
@@ -42,9 +60,17 @@ function App() {
           </main>
           <Footer />
         </div>
-      </CartProvider>
+      )}
+    </CartProvider>
+  );
+}
+
+function AppWrapper() {
+  return (
+    <Router>
+      <App />
     </Router>
   );
 }
 
-export default App;
+export default AppWrapper;
