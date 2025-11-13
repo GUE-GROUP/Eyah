@@ -197,11 +197,17 @@ const Contact: React.FC = () => {
       </section>
 
       {/* Map Section */}
-      <section className="h-96 bg-gray-200">
-        <div className="w-full h-full flex items-center justify-center text-gray-500">
-          {/* Placeholder for Google Maps */}
-          <p>Map Integration Placeholder - Add Google Maps API Key</p>
-        </div>
+      <section className="h-[500px] bg-gray-200">
+        <iframe 
+          src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d525818.917598424!2d8.530306!3d7.733926!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x105081ad0dc0150d%3A0xac1351e39bebeeeb!2s10%20Keffi%20Road%2C%20Makurdi%2C%20970101%2C%20Benue%2C%20Nigeria!5e1!3m2!1sen!2sus!4v1763031437960!5m2!1sen!2sus" 
+          width="100%" 
+          height="100%" 
+          style={{ border: 0 }} 
+          allowFullScreen 
+          loading="lazy" 
+          referrerPolicy="no-referrer-when-downgrade"
+          title="Eyah's Hotel & Suites Location"
+        />
       </section>
     </div>
   );
