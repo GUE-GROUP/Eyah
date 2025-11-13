@@ -9,28 +9,28 @@ const HeroSection: React.FC = () => {
 
   const featuredRooms = [
     {
-      image: '/images/img (6).jpg',
-      title: 'Luxury Room with Pool View',
+      image: '/images/img (7).jpg',
+      title: 'COMFY DELUX',
       location: 'Makurdi, Benue State',
-      price: 15000
+      price: 40000
     },
     {
       image: '/images/img (7).jpg',
-      title: 'Comfy Deluxe Suite',
+      title: 'Super Deluxe',
       location: 'Makurdi, Benue State',
-      price: 15000
+      price: 45000
     },
     {
       image: '/images/img (8).jpg',
-      title: 'Luxury Splash Room',
+      title: 'Luxury Splash',
       location: 'Makurdi, Benue State',
-      price: 25000
+      price: 50000
     },
     {
       image: '/images/img (9).jpg',
       title: 'Presidential Suite',
       location: 'Makurdi, Benue State',
-      price: 75000
+      price: 200000
     }
   ];
 
