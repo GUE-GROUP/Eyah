@@ -8,8 +8,10 @@ import {
   TrendingUp,
   BedDouble,
   MessageSquare,
-  LogOut
+  LogOut,
+  CheckCircle
 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -30,16 +32,74 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // Simulate fetching stats - will be replaced with Supabase
-    setStats({
-      totalBookings: 156,
-      pendingBookings: 12,
-      totalRevenue: 8450000,
-      occupancyRate: 78,
-      availableRooms: 15,
-      unreadMessages: 8
-    });
+    loadStats();
   }, [navigate]);
+
+  const loadStats = async () => {
+    console.group('📊 Admin Dashboard - Loading Stats');
+    try {
+      // Get total bookings
+      const { count: totalBookings } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true });
+
+      // Get pending bookings
+      const { count: pendingBookings } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      // Get total revenue (sum of confirmed bookings)
+      const { data: revenueData } = await supabase
+        .from('bookings')
+        .select('total_amount')
+        .in('status', ['confirmed', 'completed']);
+      
+      const totalRevenue = revenueData?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
+
+      // Get available rooms
+      const { count: availableRooms } = await supabase
+        .from('rooms')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_available', true);
+
+      // Get unread messages
+      const { count: unreadMessages } = await supabase
+        .from('contact_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'unread');
+
+      // Calculate occupancy rate (simplified)
+      const { count: totalRooms } = await supabase
+        .from('rooms')
+        .select('*', { count: 'exact', head: true });
+      
+      const occupancyRate = totalRooms ? Math.round(((totalRooms - (availableRooms || 0)) / totalRooms) * 100) : 0;
+
+      console.log('✅ Stats loaded:', {
+        totalBookings,
+        pendingBookings,
+        totalRevenue,
+        availableRooms,
+        unreadMessages,
+        occupancyRate
+      });
+
+      setStats({
+        totalBookings: totalBookings || 0,
+        pendingBookings: pendingBookings || 0,
+        totalRevenue: totalRevenue,
+        occupancyRate: occupancyRate,
+        availableRooms: availableRooms || 0,
+        unreadMessages: unreadMessages || 0
+      });
+      console.groupEnd();
+    } catch (error: any) {
+      console.error('❌ Error loading stats:', error);
+      console.groupEnd();
+      // Keep default values on error
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
@@ -138,6 +198,15 @@ const AdminDashboard: React.FC = () => {
           <h2 className="text-xl font-bold text-dark mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button
+              onClick={() => navigate('/admin/checkin')}
+              className="p-4 border-2 border-green-200 bg-green-50 rounded-lg hover:border-green-500 hover:bg-green-100 transition-all duration-200 text-left"
+            >
+              <CheckCircle className="text-green-600 mb-2" size={24} />
+              <h3 className="font-semibold text-dark">Guest Check-In</h3>
+              <p className="text-sm text-gray-600">Verify and check in guests</p>
+            </button>
+
+            <button
               onClick={() => navigate('/admin/bookings')}
               className="p-4 border-2 border-gray-200 rounded-lg hover:border-accent hover:bg-accent/5 transition-all duration-200 text-left"
             >
@@ -162,15 +231,6 @@ const AdminDashboard: React.FC = () => {
               <MessageSquare className="text-accent mb-2" size={24} />
               <h3 className="font-semibold text-dark">Messages</h3>
               <p className="text-sm text-gray-600">Respond to inquiries</p>
-            </button>
-            
-            <button
-              onClick={() => navigate('/')}
-              className="p-4 border-2 border-gray-200 rounded-lg hover:border-accent hover:bg-accent/5 transition-all duration-200 text-left"
-            >
-              <LayoutDashboard className="text-accent mb-2" size={24} />
-              <h3 className="font-semibold text-dark">View Website</h3>
-              <p className="text-sm text-gray-600">Go to public site</p>
             </button>
           </div>
         </div>

@@ -43,6 +43,8 @@ export interface Booking extends BookingFormData {
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   totalAmount: number;
   createdAt: string;
+  roomName?: string;
+  roomPrice?: number;
 }
 
 export interface AdminUser {

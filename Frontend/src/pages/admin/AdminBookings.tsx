@@ -8,17 +8,23 @@ import {
   Check, 
   X,
   ArrowLeft,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
+import { getBookings, updateBookingStatus } from '../../lib/supabase';
+import { useToast } from '../../components/ToastContainer';
 import type { Booking } from '../../types';
 
 const AdminBookings: React.FC = () => {
   const navigate = useNavigate();
+  const toast = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
 
   useEffect(() => {
     // Check authentication
@@ -28,64 +34,53 @@ const AdminBookings: React.FC = () => {
       return;
     }
 
-    // Mock bookings data - will be replaced with Supabase
-    const mockBookings: Booking[] = [
-      {
-        id: '1',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john@example.com',
-        phone: '+234 912 855 5191',
-        roomId: '6',
-        checkIn: '2025-11-20',
-        checkOut: '2025-11-23',
-        adults: 2,
-        children: 0,
-        rooms: 1,
-        specialRequests: 'Late check-in',
-        status: 'pending',
-        totalAmount: 600000,
-        createdAt: '2025-11-13T10:30:00Z'
-      },
-      {
-        id: '2',
-        firstName: 'Jane',
-        lastName: 'Smith',
-        email: 'jane@example.com',
-        phone: '+234 816 333 2977',
-        roomId: '1',
-        checkIn: '2025-11-15',
-        checkOut: '2025-11-17',
-        adults: 1,
-        children: 1,
-        rooms: 1,
-        specialRequests: '',
-        status: 'confirmed',
-        totalAmount: 80000,
-        createdAt: '2025-11-12T14:20:00Z'
-      },
-      {
-        id: '3',
-        firstName: 'Michael',
-        lastName: 'Johnson',
-        email: 'michael@example.com',
-        phone: '+234 912 855 5191',
-        roomId: '5',
-        checkIn: '2025-11-18',
-        checkOut: '2025-11-20',
-        adults: 2,
-        children: 0,
-        rooms: 1,
-        specialRequests: 'Airport pickup',
-        status: 'confirmed',
-        totalAmount: 300000,
-        createdAt: '2025-11-11T09:15:00Z'
-      },
-    ];
-
-    setBookings(mockBookings);
-    setFilteredBookings(mockBookings);
+    loadBookings();
   }, [navigate]);
+
+  const loadBookings = async () => {
+    console.group('📋 Admin Bookings - Loading');
+    setLoading(true);
+    try {
+      console.log('Fetching bookings from database...');
+      const data = await getBookings();
+      
+      console.log('✅ Bookings loaded:', data?.length || 0);
+      
+      // Transform data to match Booking interface
+      const transformedBookings: Booking[] = (data || []).map((booking: any) => {
+        console.log('Booking data:', booking); // Debug log
+        return {
+          id: booking.id,
+          firstName: booking.first_name,
+          lastName: booking.last_name,
+          email: booking.email,
+          phone: booking.phone,
+          roomId: booking.room_id,
+          checkIn: booking.check_in,
+          checkOut: booking.check_out,
+          adults: booking.adults,
+          children: booking.children,
+          rooms: booking.rooms, // This is now the number field (not overwritten)
+          specialRequests: booking.special_requests || '',
+          status: booking.status,
+          totalAmount: booking.total_amount,
+          createdAt: booking.created_at,
+          roomName: booking.room?.name || 'Unknown Room', // Extract room name from joined data
+          roomPrice: booking.room?.price || 0 // Extract room price from joined data
+        };
+      });
+      
+      setBookings(transformedBookings);
+      setFilteredBookings(transformedBookings);
+      console.groupEnd();
+    } catch (error: any) {
+      console.error('❌ Error loading bookings:', error);
+      toast.error('Failed to load bookings');
+      console.groupEnd();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = bookings;
@@ -108,11 +103,26 @@ const AdminBookings: React.FC = () => {
     setFilteredBookings(filtered);
   }, [searchTerm, statusFilter, bookings]);
 
-  const handleStatusChange = (bookingId: string, newStatus: Booking['status']) => {
-    setBookings(prev => 
-      prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
-    );
-    alert(`Booking ${newStatus} successfully!`);
+  const handleStatusChange = async (bookingId: string, newStatus: Booking['status']) => {
+    setUpdating(bookingId);
+    console.log(`Updating booking ${bookingId} to ${newStatus}`);
+    
+    try {
+      await updateBookingStatus(bookingId, newStatus);
+      
+      // Update local state
+      setBookings(prev => 
+        prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b)
+      );
+      
+      toast.success(`Booking ${newStatus} successfully!`);
+      console.log('✅ Booking status updated');
+    } catch (error: any) {
+      console.error('❌ Error updating booking:', error);
+      toast.error('Failed to update booking status');
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -188,6 +198,11 @@ const AdminBookings: React.FC = () => {
 
         {/* Bookings Table */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -249,14 +264,20 @@ const AdminBookings: React.FC = () => {
                           <>
                             <button
                               onClick={() => handleStatusChange(booking.id, 'confirmed')}
-                              className="p-2 hover:bg-green-100 rounded-lg transition-colors duration-200"
+                              disabled={updating === booking.id}
+                              className="p-2 hover:bg-green-100 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Confirm"
                             >
-                              <Check size={18} className="text-green-600" />
+                              {updating === booking.id ? (
+                                <Loader2 size={18} className="text-green-600 animate-spin" />
+                              ) : (
+                                <Check size={18} className="text-green-600" />
+                              )}
                             </button>
                             <button
                               onClick={() => handleStatusChange(booking.id, 'cancelled')}
-                              className="p-2 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                              disabled={updating === booking.id}
+                              className="p-2 hover:bg-red-100 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Cancel"
                             >
                               <X size={18} className="text-red-600" />
@@ -269,13 +290,14 @@ const AdminBookings: React.FC = () => {
                 ))}
               </tbody>
             </table>
-          </div>
 
-          {filteredBookings.length === 0 && (
-            <div className="text-center py-12">
-              <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-600">No bookings found</p>
-            </div>
+            {filteredBookings.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <Calendar className="mx-auto text-gray-400 mb-4" size={48} />
+                <p className="text-gray-600">No bookings found</p>
+              </div>
+            )}
+          </div>
           )}
         </div>
       </main>

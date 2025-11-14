@@ -15,6 +15,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminRooms from './pages/admin/AdminRooms';
 import AdminMessages from './pages/admin/AdminMessages';
+import AdminCheckIn from './pages/admin/AdminCheckIn';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './components/ToastContainer';
 
@@ -44,6 +45,7 @@ function App() {
           <Route path="/admin/bookings" element={<AdminBookings />} />
           <Route path="/admin/rooms" element={<AdminRooms />} />
           <Route path="/admin/messages" element={<AdminMessages />} />
+          <Route path="/admin/checkin" element={<AdminCheckIn />} />
         </Routes>
       ) : (
         // Public routes with Header/Footer

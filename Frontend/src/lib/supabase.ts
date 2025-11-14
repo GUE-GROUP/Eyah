@@ -451,7 +451,7 @@ export async function submitContactMessage(messageData: {
 export async function getBookings(status?: string) {
   let query = supabase
     .from('bookings')
-    .select('*, rooms(name, price)')
+    .select('*, room:rooms(name, price)')
     .order('created_at', { ascending: false });
 
   if (status && status !== 'all') {
@@ -468,7 +468,8 @@ export async function getBookings(status?: string) {
  */
 export async function updateBookingStatus(
   bookingId: string,
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed',
+  reason?: string
 ) {
   const { data, error } = await supabase
     .from('bookings')
@@ -478,6 +479,24 @@ export async function updateBookingStatus(
     .single();
 
   if (error) throw error;
+
+  // Send status update email (don't fail if email fails)
+  if (status !== 'pending') {
+    try {
+      await supabase.functions.invoke('send-status-update', {
+        body: {
+          bookingId,
+          newStatus: status,
+          reason
+        }
+      });
+      console.log('✅ Status update email sent');
+    } catch (emailError) {
+      console.error('⚠️ Failed to send status update email:', emailError);
+      // Don't throw error, just log it
+    }
+  }
+
   return data;
 }
 

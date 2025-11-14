@@ -130,8 +130,56 @@ serve(async (req) => {
       )
     }
 
-    // TODO: Send confirmation email (implement in separate function)
-    // await sendConfirmationEmail(booking)
+    // Send confirmation email to guest
+    try {
+      await supabaseClient.functions.invoke('send-email-resend', {
+        body: {
+          type: 'booking_confirmation',
+          to: bookingData.email,
+          data: {
+            bookingId: booking.id,
+            guestName: `${bookingData.firstName} ${bookingData.lastName}`,
+            roomName: room.name,
+            checkIn: booking.check_in,
+            checkOut: booking.check_out,
+            totalAmount: booking.total_amount,
+            adults: booking.adults,
+            children: booking.children,
+            rooms: booking.rooms
+          }
+        }
+      })
+      console.log('✅ Confirmation email sent to guest')
+    } catch (emailError) {
+      console.error('⚠️ Failed to send confirmation email:', emailError)
+      // Don't fail the booking if email fails
+    }
+
+    // Send notification email to admin
+    try {
+      await supabaseClient.functions.invoke('send-email-resend', {
+        body: {
+          type: 'admin_notification',
+          to: 'admin@eyahshotel.com', // Change to your admin email
+          data: {
+            bookingId: booking.id,
+            guestName: `${bookingData.firstName} ${bookingData.lastName}`,
+            email: bookingData.email,
+            phone: bookingData.phone,
+            roomName: room.name,
+            checkIn: booking.check_in,
+            checkOut: booking.check_out,
+            totalAmount: booking.total_amount,
+            adults: booking.adults,
+            children: booking.children
+          }
+        }
+      })
+      console.log('✅ Admin notification email sent')
+    } catch (emailError) {
+      console.error('⚠️ Failed to send admin notification:', emailError)
+      // Don't fail the booking if email fails
+    }
 
     return new Response(
       JSON.stringify({
