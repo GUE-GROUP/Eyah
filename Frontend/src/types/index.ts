@@ -62,5 +62,6 @@ export interface ContactMessage {
   subject: string;
   message: string;
   status: 'unread' | 'read' | 'responded';
-  createdAt: string;
+  created_at: string;
+  deleted_at?: string | null;
 }

@@ -13,6 +13,15 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
+interface RecentActivity {
+  id: string;
+  type: 'booking' | 'message' | 'checkin';
+  message: string;
+  time: string;
+  timestamp: string;
+  relatedId: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
@@ -23,6 +32,7 @@ const AdminDashboard: React.FC = () => {
     availableRooms: 0,
     unreadMessages: 0
   });
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -33,6 +43,7 @@ const AdminDashboard: React.FC = () => {
     }
 
     loadStats();
+    loadRecentActivities();
   }, [navigate]);
 
   const loadStats = async () => {
@@ -98,6 +109,98 @@ const AdminDashboard: React.FC = () => {
       console.error('❌ Error loading stats:', error);
       console.groupEnd();
       // Keep default values on error
+    }
+  };
+
+  const loadRecentActivities = async () => {
+    console.group('📋 Loading Recent Activities');
+    try {
+      const activities: RecentActivity[] = [];
+
+      // Get recent bookings
+      const { data: bookings } = await supabase
+        .from('bookings')
+        .select('id, first_name, last_name, status, created_at, checked_in_at, rooms:room_id(name)')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      bookings?.forEach((booking: any) => {
+        // Check-in activity
+        if (booking.checked_in_at) {
+          activities.push({
+            id: `checkin-${booking.id}`,
+            type: 'checkin',
+            message: `${booking.first_name} ${booking.last_name} checked in - ${booking.rooms?.name || 'Room'}`,
+            time: getRelativeTime(booking.checked_in_at),
+            timestamp: booking.checked_in_at,
+            relatedId: booking.id
+          });
+        }
+        
+        // Booking activity
+        activities.push({
+          id: `booking-${booking.id}`,
+          type: 'booking',
+          message: `${booking.status === 'confirmed' ? 'Booking confirmed' : 'New booking'} - ${booking.first_name} ${booking.last_name} - ${booking.rooms?.name || 'Room'}`,
+          time: getRelativeTime(booking.created_at),
+          timestamp: booking.created_at,
+          relatedId: booking.id
+        });
+      });
+
+      // Get recent messages
+      const { data: messages } = await supabase
+        .from('contact_messages')
+        .select('id, name, subject, created_at')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      messages?.forEach((message: any) => {
+        activities.push({
+          id: `message-${message.id}`,
+          type: 'message',
+          message: `New inquiry from ${message.name} - ${message.subject}`,
+          time: getRelativeTime(message.created_at),
+          timestamp: message.created_at,
+          relatedId: message.id
+        });
+      });
+
+      // Sort by timestamp (most recent first) and take top 10
+      const sortedActivities = activities
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
+
+      console.log('✅ Activities loaded:', sortedActivities.length);
+      setRecentActivities(sortedActivities);
+      console.groupEnd();
+    } catch (error: any) {
+      console.error('❌ Error loading activities:', error);
+      console.groupEnd();
+    }
+  };
+
+  const getRelativeTime = (timestamp: string): string => {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now.getTime() - then.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return then.toLocaleDateString();
+  };
+
+  const handleActivityClick = (activity: RecentActivity) => {
+    if (activity.type === 'booking' || activity.type === 'checkin') {
+      navigate('/admin/bookings');
+    } else if (activity.type === 'message') {
+      navigate('/admin/messages');
     }
   };
 
@@ -239,28 +342,33 @@ const AdminDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-md p-6">
           <h2 className="text-xl font-bold text-dark mb-4">Recent Activity</h2>
           <div className="space-y-4">
-            {[
-              { type: 'booking', message: 'New booking from John Doe - Presidential Suite', time: '5 minutes ago' },
-              { type: 'message', message: 'New inquiry about Banquet Hall availability', time: '15 minutes ago' },
-              { type: 'booking', message: 'Booking confirmed - COMFY DELUX', time: '1 hour ago' },
-              { type: 'payment', message: 'Payment received - ₦200,000', time: '2 hours ago' },
-            ].map((activity, index) => (
-              <div key={index} className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                <div className={`p-2 rounded-lg ${
-                  activity.type === 'booking' ? 'bg-blue-100' :
-                  activity.type === 'message' ? 'bg-orange-100' :
-                  'bg-green-100'
-                }`}>
-                  {activity.type === 'booking' && <Calendar size={20} className="text-blue-600" />}
-                  {activity.type === 'message' && <MessageSquare size={20} className="text-orange-600" />}
-                  {activity.type === 'payment' && <DollarSign size={20} className="text-green-600" />}
-                </div>
-                <div className="flex-1">
-                  <p className="text-dark font-medium">{activity.message}</p>
-                  <p className="text-sm text-gray-500">{activity.time}</p>
-                </div>
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No recent activities</p>
               </div>
-            ))}
+            ) : (
+              recentActivities.map((activity) => (
+                <button
+                  key={activity.id}
+                  onClick={() => handleActivityClick(activity)}
+                  className="w-full flex items-start gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-accent transition-all duration-200 text-left"
+                >
+                  <div className={`p-2 rounded-lg ${
+                    activity.type === 'booking' ? 'bg-blue-100' :
+                    activity.type === 'message' ? 'bg-orange-100' :
+                    'bg-green-100'
+                  }`}>
+                    {activity.type === 'booking' && <Calendar size={20} className="text-blue-600" />}
+                    {activity.type === 'message' && <MessageSquare size={20} className="text-orange-600" />}
+                    {activity.type === 'checkin' && <CheckCircle size={20} className="text-green-600" />}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-dark font-medium">{activity.message}</p>
+                    <p className="text-sm text-gray-500">{activity.time}</p>
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </div>
       </main>

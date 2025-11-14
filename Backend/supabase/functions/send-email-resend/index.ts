@@ -77,6 +77,11 @@ serve(async (req) => {
         // Keep same test domain for contact form
         break
 
+      case 'contact_form_reply':
+        emailSubject = `Re: ${emailRequest.data.originalSubject}`
+        emailHTML = generateContactFormReplyEmail(emailRequest.data)
+        break
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid email type' }),
@@ -558,6 +563,87 @@ function generateContactFormEmail(data: any): string {
           <p style="margin-top: 20px; color: #666; font-size: 14px;">
             Reply to this inquiry at: <a href="mailto:${email}">${email}</a>
           </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+}
+
+function generateContactFormReplyEmail(data: any): string {
+  const { recipientName, originalSubject, originalMessage, replyMessage } = data
+
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reply from Eyah's Hotel & Suites</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; }
+        .email-container { max-width: 600px; margin: 20px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #0A3A40 0%, #D4A574 100%); color: white; padding: 40px 30px; text-align: center; }
+        .header h1 { font-size: 26px; margin-bottom: 10px; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; color: #0A3A40; margin-bottom: 20px; font-weight: 600; }
+        .reply-box { background: #f8f9fa; border-left: 4px solid #D4A574; padding: 20px; border-radius: 6px; margin: 25px 0; }
+        .reply-box h3 { color: #0A3A40; margin-bottom: 15px; font-size: 16px; }
+        .original-message { background: #e8f4f8; border-left: 4px solid #0A3A40; padding: 20px; border-radius: 6px; margin: 25px 0; }
+        .original-message h4 { color: #0A3A40; margin-bottom: 10px; font-size: 14px; }
+        .original-message p { color: #555; font-size: 14px; }
+        .contact-info { background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 25px 0; }
+        .contact-info p { margin: 8px 0; color: #555; }
+        .contact-info strong { color: #0A3A40; }
+        .footer { background: #0A3A40; color: white; padding: 25px; text-align: center; font-size: 14px; }
+        .footer p { margin: 5px 0; opacity: 0.9; }
+      </style>
+    </head>
+    <body>
+      <div class="email-container">
+        <div class="header">
+          <h1>🏨 Eyah's Hotel & Suites</h1>
+          <p>Thank you for contacting us</p>
+        </div>
+
+        <div class="content">
+          <div class="greeting">Dear ${recipientName},</div>
+          
+          <p style="margin-bottom: 20px; color: #555;">
+            Thank you for reaching out to Eyah's Hotel & Suites. We appreciate your inquiry and are happy to assist you.
+          </p>
+
+          <div class="reply-box">
+            <h3>Our Response:</h3>
+            <p style="color: #333; white-space: pre-wrap;">${replyMessage}</p>
+          </div>
+
+          <div class="original-message">
+            <h4>Your Original Message:</h4>
+            <p><strong>Subject:</strong> ${originalSubject}</p>
+            <p style="margin-top: 10px; white-space: pre-wrap;">${originalMessage}</p>
+          </div>
+
+          <p style="margin-top: 25px; color: #555;">
+            If you have any additional questions or need further assistance, please don't hesitate to contact us.
+          </p>
+
+          <div class="contact-info">
+            <p><strong>📞 Phone:</strong> +234 912 855 5191, +234 816 333 2977</p>
+            <p><strong>📧 Email:</strong> info@eyahshotel.com</p>
+            <p><strong>📍 Address:</strong> 10 Keffi Road, Makurdi, Benue State, Nigeria</p>
+          </div>
+
+          <p style="margin-top: 30px; color: #555;">
+            Warm regards,<br>
+            <strong style="color: #0A3A40;">The Eyah's Hotel & Suites Team</strong>
+          </p>
+        </div>
+
+        <div class="footer">
+          <p>&copy; ${new Date().getFullYear()} Eyah's Hotel & Suites. All rights reserved.</p>
+          <p>10 Keffi Road, Makurdi, 970101, Benue State, Nigeria</p>
         </div>
       </div>
     </body>

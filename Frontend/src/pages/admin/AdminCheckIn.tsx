@@ -42,6 +42,20 @@ const AdminCheckIn: React.FC = () => {
   const [guestDetails, setGuestDetails] = useState<GuestDetails | null>(null);
   const [error, setError] = useState('');
 
+  const getErrorMessage = (errorCode: string): string => {
+    const errorMessages: Record<string, string> = {
+      'INVALID_INPUT': 'Please enter a valid verification code',
+      'INVALID_CODE_FORMAT': 'Verification code must be 8 characters long',
+      'CODE_NOT_FOUND': 'Invalid verification code. Please check the code and try again.',
+      'INVALID_STATUS': 'This booking cannot be checked in at this time',
+      'ALREADY_CHECKED_IN': 'This guest has already been checked in',
+      'EARLY_CHECKIN': 'Check-in date has not arrived yet',
+      'UPDATE_FAILED': 'Failed to complete check-in. Please try again.',
+      'SERVER_ERROR': 'An unexpected error occurred. Please try again.'
+    };
+    return errorMessages[errorCode] || 'Verification failed. Please try again.';
+  };
+
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -70,16 +84,18 @@ const AdminCheckIn: React.FC = () => {
 
       if (verifyError) {
         console.error('❌ Verification error:', verifyError);
-        setError(verifyError.message || 'Failed to verify code');
-        toast.error('Verification failed');
+        const errorMessage = verifyError.message || 'Failed to verify code. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
         console.groupEnd();
         return;
       }
 
       if (data.error) {
         console.error('❌ Error:', data.error);
-        setError(data.message || data.error);
-        toast.error(data.message || 'Invalid verification code');
+        const errorMessage = data.message || getErrorMessage(data.error);
+        setError(errorMessage);
+        toast.error(errorMessage);
         console.groupEnd();
         return;
       }

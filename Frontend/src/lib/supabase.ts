@@ -501,7 +501,7 @@ export async function updateBookingStatus(
 }
 
 /**
- * Admin: Get all contact messages
+ * Admin: Get all contact messages (excluding deleted)
  */
 export async function getContactMessages(status?: string) {
   let query = supabase
@@ -515,7 +515,9 @@ export async function getContactMessages(status?: string) {
 
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+  
+  // Filter out deleted messages if deleted_at column exists
+  return data?.filter(msg => !msg.deleted_at) || data;
 }
 
 /**
@@ -534,6 +536,86 @@ export async function updateMessageStatus(
 
   if (error) throw error;
   return data;
+}
+
+/**
+ * Admin: Move message to trash (soft delete)
+ */
+export async function moveMessageToTrash(messageId: string) {
+  // Check if deleted_at column exists by trying to update
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', messageId)
+    .select()
+    .single();
+
+  // If column doesn't exist, just delete the message directly
+  if (error && error.message.includes('column')) {
+    const { error: deleteError } = await supabase
+      .from('contact_messages')
+      .delete()
+      .eq('id', messageId);
+    
+    if (deleteError) throw deleteError;
+    return { id: messageId };
+  }
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Admin: Restore message from trash
+ */
+export async function restoreMessageFromTrash(messageId: string) {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .update({ deleted_at: null })
+    .eq('id', messageId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Admin: Get trashed messages
+ */
+export async function getTrashedMessages() {
+  try {
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
+
+    if (error) {
+      // If column doesn't exist, return empty array
+      if (error.message.includes('column')) {
+        return [];
+      }
+      throw error;
+    }
+    return data;
+  } catch (error: any) {
+    // Return empty array if there's any error
+    console.warn('Trash feature not available yet. Run migration to enable.');
+    return [];
+  }
+}
+
+/**
+ * Admin: Permanently delete message
+ */
+export async function permanentlyDeleteMessage(messageId: string) {
+  const { error } = await supabase
+    .from('contact_messages')
+    .delete()
+    .eq('id', messageId);
+
+  if (error) throw error;
 }
 
 /**

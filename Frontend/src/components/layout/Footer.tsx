@@ -105,8 +105,8 @@ const Footer: React.FC = () => {
               © {currentYear} Eyah's Hotel & Suites. All rights reserved.
             </p>
             <div className="flex space-x-6 text-sm text-white/60">
-              <a href="#" className="hover:text-accent transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-accent transition-colors">Terms of Service</a>
+              <Link to="/privacy" className="hover:text-accent transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-accent transition-colors">Terms & Conditions</Link>
             </div>
           </div>
         </div>
