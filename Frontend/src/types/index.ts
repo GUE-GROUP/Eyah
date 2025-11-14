@@ -3,9 +3,10 @@ export type Room = {
   name: string;
   description: string;
   price: number;
-  image: string;
+  image_url?: string | null;
   features: string[];
   capacity: number;
+  is_available: boolean;
 };
 
 export type CartItem = {

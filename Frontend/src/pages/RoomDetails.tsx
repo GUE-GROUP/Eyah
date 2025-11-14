@@ -143,7 +143,7 @@ const RoomDetails: React.FC = () => {
           <FadeInView>
             <div className="relative h-[500px] rounded-2xl overflow-hidden shadow-2xl">
               <img
-                src={room.image}
+                src={room.image_url || '/images/img (7).jpg'}
                 alt={room.name}
                 className="w-full h-full object-cover"
               />

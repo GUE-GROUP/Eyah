@@ -54,7 +54,7 @@ const Cart: React.FC = () => {
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="w-full md:w-48 aspect-video md:aspect-square bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                         <img 
-                          src={item.room.image} 
+                          src={item.room.image_url || '/images/img (7).jpg'} 
                           alt={item.room.name}
                           className="w-full h-full object-cover"
                         />

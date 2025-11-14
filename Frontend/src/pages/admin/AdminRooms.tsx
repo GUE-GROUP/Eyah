@@ -9,7 +9,7 @@ interface RoomFormData {
   name: string;
   description: string;
   price: number;
-  image: string;
+  image_url?: string;
   features: string[];
   capacity: number;
   is_available: boolean;
@@ -24,12 +24,15 @@ const AdminRooms: React.FC = () => {
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [featureInput, setFeatureInput] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<RoomFormData>({
     name: '',
     description: '',
     price: 0,
-    image: '',
+    image_url: '',
     features: [],
     capacity: 2,
     is_available: true
@@ -95,7 +98,7 @@ const AdminRooms: React.FC = () => {
       name: '',
       description: '',
       price: 0,
-      image: '',
+      image_url: '',
       features: [],
       capacity: 2,
       is_available: true
@@ -109,7 +112,7 @@ const AdminRooms: React.FC = () => {
       name: room.name,
       description: room.description || '',
       price: room.price,
-      image: room.image || '',
+      image_url: room.image_url || '',
       features: room.features || [],
       capacity: room.capacity,
       is_available: room.is_available
@@ -121,6 +124,8 @@ const AdminRooms: React.FC = () => {
     setShowModal(false);
     setEditingRoom(null);
     setFeatureInput('');
+    setImageFile(null);
+    setUploading(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -148,6 +153,81 @@ const AdminRooms: React.FC = () => {
     }));
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setImageFile(file);
+    setUploading(true);
+    console.group('📤 Uploading Image');
+    console.log('File name:', file.name);
+    console.log('File size:', (file.size / 1024).toFixed(2), 'KB');
+    console.log('File type:', file.type);
+
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `room-images/${fileName}`;
+
+      console.log('Uploading to:', filePath);
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('room-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('❌ Upload error:', error);
+        throw error;
+      }
+
+      console.log('✅ Upload successful:', data);
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('room-images')
+        .getPublicUrl(filePath);
+
+      console.log('📎 Public URL:', publicUrl);
+
+      // Update form data with the public URL
+      setFormData(prev => ({
+        ...prev,
+        image_url: publicUrl
+      }));
+
+      toast.success('Image uploaded successfully!');
+      console.groupEnd();
+    } catch (error: any) {
+      console.error('❌ Error uploading image:', error);
+      toast.error(error.message || 'Failed to upload image');
+      console.groupEnd();
+    } finally {
+      setUploading(false);
+      setImageFile(null);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -169,7 +249,7 @@ const AdminRooms: React.FC = () => {
             name: formData.name,
             description: formData.description,
             price: formData.price,
-            image: formData.image,
+            image_url: formData.image_url,
             features: formData.features,
             capacity: formData.capacity,
             is_available: formData.is_available,
@@ -189,7 +269,7 @@ const AdminRooms: React.FC = () => {
             name: formData.name,
             description: formData.description,
             price: formData.price,
-            image: formData.image,
+            image_url: formData.image_url,
             features: formData.features,
             capacity: formData.capacity,
             is_available: formData.is_available
@@ -281,7 +361,7 @@ const AdminRooms: React.FC = () => {
             {rooms.map((room) => (
               <div key={room.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow">
                 <div className="relative">
-                  <img src={room.image || '/images/img (7).jpg'} alt={room.name} className="w-full h-48 object-cover" />
+                  <img src={room.image_url || '/images/img (7).jpg'} alt={room.name} className="w-full h-48 object-cover" />
                   <button
                     onClick={() => toggleAvailability(room.id, room.is_available)}
                     className="absolute top-2 right-2 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50"
@@ -424,26 +504,63 @@ const AdminRooms: React.FC = () => {
               {/* Image URL */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Image URL
+                  Room Image <span className="text-gray-400 font-normal">(Optional)</span>
                 </label>
-                <div className="flex gap-2">
+                
+                {/* Image Preview */}
+                {formData.image_url && (
+                  <div className="mb-3">
+                    <img 
+                      src={formData.image_url} 
+                      alt="Room preview" 
+                      className="w-full h-48 object-cover rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-2 mb-2">
                   <input
                     type="url"
-                    name="image"
-                    value={formData.image}
+                    name="image_url"
+                    value={formData.image_url}
                     onChange={handleInputChange}
                     className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
-                    placeholder="https://example.com/image.jpg or /images/room.jpg"
+                    placeholder="Or paste image URL here"
+                    disabled={uploading}
                   />
                   <button
                     type="button"
-                    className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    title="Upload image"
+                    onClick={triggerFileInput}
+                    disabled={uploading}
+                    className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    title="Upload image from computer"
                   >
-                    <Upload size={20} />
+                    {uploading ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        <span className="text-sm">Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={20} />
+                        <span className="text-sm">Upload</span>
+                      </>
+                    )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Enter image URL or upload an image</p>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+
+                <p className="text-xs text-gray-500">
+                  Upload an image (max 5MB) or paste a URL. Supported formats: JPG, PNG, WebP, GIF
+                </p>
               </div>
 
               {/* Features */}

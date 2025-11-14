@@ -149,7 +149,7 @@ const Rooms: React.FC = () => {
                 <div className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <img 
-                      src={room.image} 
+                      src={room.image_url || '/images/img (7).jpg'} 
                       alt={room.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />

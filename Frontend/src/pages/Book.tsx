@@ -222,7 +222,7 @@ const Book: React.FC = () => {
                     <div className="bg-cream p-4 rounded-lg">
                       <div className="flex gap-4">
                         <img 
-                          src={selectedRoom.image} 
+                          src={selectedRoom.image_url || '/images/img (7).jpg'} 
                           alt={selectedRoom.name}
                           className="w-32 h-32 object-cover rounded-lg"
                         />
