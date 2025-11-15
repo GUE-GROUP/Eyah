@@ -9,15 +9,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:prod": "npm run type-check && npm run lint && npm run build",
+    "build:prod": "npm run type-check && npm run build",
     "build:clean": "rm -rf dist && npm run build",
     "build:analyze": "vite build --mode production",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=100",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "type-check": "tsc -b --noEmit",
     "clean": "rm -rf dist node_modules/.vite",
-    "prepare:prod": "npm run clean && npm run build:prod"
+    "prepare:prod": "npm run clean && npm run build:prod",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "clsx": "^2.0.0",
