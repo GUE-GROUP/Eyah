@@ -1,7 +1,7 @@
 // Test Supabase Connection
 // Run this in browser console to verify everything is working
 
-import { supabase, getRooms, checkRoomAvailability, createBooking, submitContactMessage } from '../lib/supabase';
+import { supabase, getRooms, checkRoomAvailability } from '../lib/supabase';
 
 export async function testSupabaseConnection() {
   console.log('🧪 Testing Supabase Connection...\n');
@@ -75,7 +75,7 @@ export async function testSupabaseConnection() {
   // Test 6: Test Edge Functions
   console.log('6️⃣ Edge Functions:');
   try {
-    const { data, error } = await supabase.functions.invoke('check-availability', {
+    const { error } = await supabase.functions.invoke('check-availability', {
       body: { roomId: 'test', checkIn: '2025-11-20', checkOut: '2025-11-23', rooms: 1 }
     });
     if (error) {

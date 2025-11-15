@@ -1,21 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-interface Room {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  features: string[];
-  capacity: number;
-}
-
-interface CartItem {
-  room: Room;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-}
+import type { Room, CartItem } from '../types';
 
 interface CartContextType {
   cart: CartItem[];

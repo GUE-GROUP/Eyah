@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:prod": "npm run type-check && npm run lint && npm run build",
     "build:clean": "rm -rf dist && npm run build",
     "build:analyze": "vite build --mode production",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "type-check": "tsc -b --noEmit",
-    "clean": "rm -rf dist node_modules/.vite"
+    "clean": "rm -rf dist node_modules/.vite",
+    "prepare:prod": "npm run clean && npm run build:prod"
   },
   "dependencies": {
     "clsx": "^2.0.0",

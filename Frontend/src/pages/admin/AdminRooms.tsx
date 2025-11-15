@@ -25,7 +25,7 @@ const AdminRooms: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [featureInput, setFeatureInput] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [, setImageFile] = useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<RoomFormData>({

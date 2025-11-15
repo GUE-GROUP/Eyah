@@ -67,7 +67,7 @@ const AdminMessages: React.FC = () => {
 
     try {
       // Send reply email via Resend
-      const { data, error } = await supabase.functions.invoke('send-email-resend', {
+      const { error } = await supabase.functions.invoke('send-email-resend', {
         body: {
           type: 'contact_form_reply',
           to: selectedMessage.email,
@@ -306,7 +306,7 @@ const AdminMessages: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Date</p>
-                <p className="font-semibold">{new Date(selectedMessage.createdAt).toLocaleString()}</p>
+                <p className="font-semibold">{new Date(selectedMessage.created_at).toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-2">Message</p>

@@ -13,7 +13,7 @@ const Book: React.FC = () => {
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<BookingFormData>({
     firstName: '',
@@ -459,7 +459,7 @@ const Book: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Guests:</span>
-                        <span className="font-semibold">{formData.guests}</span>
+                        <span className="font-semibold">{formData.adults + formData.children}</span>
                       </div>
                       <div className="flex justify-between pt-4 border-t">
                         <span className="text-lg font-bold">Total:</span>
