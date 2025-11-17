@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Wifi } from 'lucide-react';
 import FadeInView from '../animations/FadeInView';
 import SlideInView from '../animations/SlideInView';
-import { rooms } from '../../data/rooms';
+import { getRooms } from '../../lib/supabase';
+import type { Room } from '../../types';
 
 const RoomsPreview: React.FC = () => {
-  const featuredRooms = rooms.slice(0, 3);
+  const [featuredRooms, setFeaturedRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const allRooms = await getRooms();
+        // Get first 3 available rooms
+        setFeaturedRooms(allRooms.filter(room => room.is_available).slice(0, 3));
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRooms();
+  }, []);
 
   return (
     <section className="py-20 md:py-32 bg-white">
@@ -26,8 +44,18 @@ const RoomsPreview: React.FC = () => {
           </div>
         </FadeInView>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {featuredRooms.map((room, index) => (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+            <p className="mt-4 text-gray-600">Loading rooms...</p>
+          </div>
+        ) : featuredRooms.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No rooms available at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {featuredRooms.map((room, index) => (
             <SlideInView 
               key={room.id} 
               direction={index % 2 === 0 ? 'left' : 'right'}
@@ -74,15 +102,18 @@ const RoomsPreview: React.FC = () => {
               </div>
             </SlideInView>
           ))}
-        </div>
-
-        <FadeInView delay={0.3}>
-          <div className="text-center">
-            <Link to="/rooms" className="btn-primary inline-flex items-center gap-2">
-              View All Rooms <ArrowRight size={20} />
-            </Link>
           </div>
-        </FadeInView>
+        )}
+
+        {!loading && featuredRooms.length > 0 && (
+          <FadeInView delay={0.3}>
+            <div className="text-center">
+              <Link to="/rooms" className="btn-primary inline-flex items-center gap-2">
+                View All Rooms <ArrowRight size={20} />
+              </Link>
+            </div>
+          </FadeInView>
+        )}
       </div>
     </section>
   );

@@ -79,12 +79,12 @@ const HeroSection: React.FC = () => {
               <Link to="/book" className="hero-btn-primary">
                 Book Now
               </Link>
-              <button className="hero-btn-video">
+              {/* <button className="hero-btn-video">
                 <div className="video-play-icon">
                   <div className="play-triangle" />
                 </div>
                 <span>Watch Video</span>
-              </button>
+              </button> */}
             </div>
           </motion.div>
 
