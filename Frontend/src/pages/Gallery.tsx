@@ -8,18 +8,29 @@ const Gallery: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'rooms' | 'facilities' | 'dining'>('all');
 
   const galleryImages = [
-    { id: 1, src: '/images/img (7).jpg', category: 'rooms', title: 'Luxury Suite' },
-    { id: 2, src: '/images/img (8).jpg', category: 'rooms', title: 'Deluxe Room' },
-    { id: 3, src: '/images/img (9).jpg', category: 'rooms', title: 'Presidential Suite' },
-    { id: 4, src: '/images/img (3).jpg', category: 'facilities', title: 'Gym & Fitness' },
-    { id: 5, src: '/images/img (4).jpg', category: 'facilities', title: 'Event Hall' },
-    { id: 6, src: '/images/img (2).jpg', category: 'facilities', title: 'Hotel Exterior' },
-    { id: 7, src: '/images/img (5).jpg', category: 'dining', title: 'Restaurant' },
-    { id: 8, src: '/images/img (6).jpg', category: 'dining', title: 'Accommodation' },
-    { id: 9, src: '/images/img (7).jpg', category: 'rooms', title: 'Executive Room' },
-    { id: 10, src: '/images/img (1).jpg', category: 'facilities', title: 'Hotel View' },
-    { id: 11, src: '/images/img (5).jpg', category: 'dining', title: 'Fine Dining' },
-    { id: 12, src: '/images/img (8).jpg', category: 'rooms', title: 'Comfort Suite' },
+    // Rooms
+    { id: 1, src: '/gallery/Avalanche suite.jpg', category: 'rooms', title: 'Avalanche Suite' },
+    { id: 2, src: '/gallery/Business Executive.jpg', category: 'rooms', title: 'Business Executive' },
+    { id: 3, src: '/gallery/comfy deluxe.jpg', category: 'rooms', title: 'Comfy Deluxe' },
+    { id: 4, src: '/gallery/luxury splash.jpg', category: 'rooms', title: 'Luxury Splash' },
+    { id: 5, src: '/gallery/super deluxe.jpg', category: 'rooms', title: 'Super Deluxe' },
+    { id: 6, src: '/gallery/bathroom.jpg', category: 'rooms', title: 'Luxury Bathroom' },
+    
+    // Facilities
+    { id: 7, src: '/gallery/baquete hall.jpg', category: 'facilities', title: 'Banquet Hall' },
+    { id: 8, src: '/gallery/gym.jpg', category: 'facilities', title: 'Gym & Fitness Center' },
+    { id: 9, src: '/gallery/Eyah-hotl.jpg', category: 'facilities', title: 'Hotel Exterior' },
+    { id: 10, src: '/gallery/Gallary-1.jpg', category: 'facilities', title: 'Hotel Lobby' },
+    { id: 11, src: '/gallery/gallary-2.jpg', category: 'facilities', title: 'Reception Area' },
+    { id: 12, src: '/gallery/gallery-3.jpg', category: 'facilities', title: 'Hotel Facilities' },
+    { id: 13, src: '/gallery/gallery-4.jpg', category: 'facilities', title: 'Conference Room' },
+    { id: 14, src: '/gallery/gallery-5.jpg', category: 'facilities', title: 'Event Space' },
+    { id: 15, src: '/gallery/gallery-8.jpg', category: 'facilities', title: 'Hotel Amenities' },
+    { id: 16, src: '/gallery/gallery-9.jpg', category: 'facilities', title: 'Lounge Area' },
+    { id: 17, src: '/gallery/gallery-11.jpg', category: 'facilities', title: 'Hotel Interior' },
+    
+    // Dining
+    { id: 18, src: '/gallery/kitchen.jpg', category: 'dining', title: 'Professional Kitchen' },
   ];
 
   const filteredImages = galleryImages.filter(img => 
@@ -33,7 +44,7 @@ const Gallery: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-primary/60 z-10" />
         <div 
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/images/img (2).jpg)' }}
+          style={{ backgroundImage: 'url(/gallery/Eyah-hotl.jpg)' }}
         />
         <div className="container-custom relative z-20 text-white text-center">
           <FadeInView>

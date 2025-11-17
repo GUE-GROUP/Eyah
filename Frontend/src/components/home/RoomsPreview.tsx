@@ -93,7 +93,7 @@ const RoomsPreview: React.FC = () => {
                   </div>
                   
                   <Link 
-                    to={`/rooms/${room.id}`}
+                    to={`/room/${room.id}`}
                     className="inline-flex items-center gap-2 text-accent font-semibold hover:gap-4 transition-all"
                   >
                     View Details <ArrowRight size={18} />
