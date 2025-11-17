@@ -159,13 +159,13 @@ const AdminLogin: React.FC = () => {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-600 text-center">
               <strong>Demo Credentials:</strong><br />
               Email: admin@eyahshotel.com<br />
               Password: admin123
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Back to Website */}
